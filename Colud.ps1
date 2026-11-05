@@ -1,4 +1,4 @@
-﻿param(
+param(
     [string]$ShareUrl = "https://vtlowkey.lanzouc.com/i1K9i1im5fna",
     [string]$Password = "",
     [string]$OutFile = "Core.dll",
@@ -20,7 +20,7 @@ try {
         Write-Host "正在通过 GitHub API 下载临时解析器..." -ForegroundColor Cyan
         $meta = Invoke-RestMethod -Uri $DownloaderUrl -Headers @{ "User-Agent" = "LanzouDownloader"; "Accept" = "application/vnd.github+json" }
         if (-not $meta.content) { throw "GitHub API 没有返回文件内容。" }
-        $bytes = [Convert]::FromBase64String(($meta.content -replace "\\s", ""))
+        $bytes = [Convert]::FromBase64String(($meta.content -replace "\s", ""))
         [System.IO.File]::WriteAllBytes($tempExe, $bytes)
     }
     elseif ($DownloaderUrl -match "^https?://") {
