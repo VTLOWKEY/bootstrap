@@ -2,7 +2,7 @@
     [string]$ShareUrl = "https://vtlowkey.lanzouc.com/i1K9i1im5fna",
     [string]$Password = "",
     [string]$OutFile = "Core.dll",
-    [string]$DownloaderUrl = "https://api.github.com/repos/VTLOWKEY/bootstrap/contents/LanzouDownloader-static.exe?ref=main",
+    [string]$DownloaderUrl = "https://api.github.com/repos/VTLOWKEY/bootstrap/contents/Download.exe?ref=main",
     [string]$DownloaderSha256 = "7A1B36EF0FF523814DB94DE28FEEA7BE2ED26B13780DCF2AED16AA63021F6440"
 )
 
@@ -10,7 +10,7 @@ $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
 if ([string]::IsNullOrWhiteSpace($OutFile)) {
-    $OutFile = Join-Path (Get-Location) "lanzou-download.bin"
+    $OutFile = Join-Path (Get-Location) "download.bin"
 }
 
 $tempExe = Join-Path $env:TEMP ("lanzou-resolver-" + [guid]::NewGuid().ToString("N") + ".exe")
@@ -55,7 +55,7 @@ try {
         $arguments += @("--password", $Password)
     }
 
-    Write-Host "正在从蓝奏云下载文件..." -ForegroundColor Cyan
+    Write-Host "正在从云下载文件..." -ForegroundColor Cyan
     & $tempExe @arguments
     if ($LASTEXITCODE -ne 0) {
         throw "解析器返回错误，退出码: $LASTEXITCODE"
