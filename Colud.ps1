@@ -1,9 +1,8 @@
 param(
     [string]$ShareUrl = "https://vtlowkey.lanzouc.com/i1K9i1im5fna",
     [string]$Password = "",
-    [string]$OutFile = "Core.dll",
-    [string]$DownloaderUrl = "https://vtlowkey.github.io/bootstrap/Download.exe",
-    [string]$DownloaderSha256 = "7A1B36EF0FF523814DB94DE28FEEA7BE2ED26B13780DCF2AED16AA63021F6440"
+    [string]$OutFile = "",
+    [string]$DownloaderUrl = "https://vtlowkey.github.io/bootstrap/Download.exe"
 )
 
 [Console]::OutputEncoding = [Text.Encoding]::UTF8
@@ -19,10 +18,7 @@ function Write-Lz([string]$Base64Text, [string]$Color = "Gray") {
     Write-Host (Get-LzText $Base64Text) -ForegroundColor $Color
 }
 
-if ([string]::IsNullOrWhiteSpace($OutFile)) {
-    $OutFile = Join-Path (Get-Location) "download.bin"
-}
-
+$tempDownloadDir = $null
 $tempExe = Join-Path $env:TEMP ("lanzou-resolver-" + [guid]::NewGuid().ToString("N") + ".exe")
 
 try {
@@ -53,15 +49,15 @@ try {
 
     Unblock-File -LiteralPath $tempExe -ErrorAction SilentlyContinue
 
-    if (-not [string]::IsNullOrWhiteSpace($DownloaderSha256)) {
-        $actual = (Get-FileHash -LiteralPath $tempExe -Algorithm SHA256).Hash
-        if ($actual -ne $DownloaderSha256.ToUpperInvariant()) {
-            $msg = (Get-LzText "6Kej5p6Q5ZmoIFNIQTI1NiDmoKHpqozlpLHotKXjgII=") + "`n" + (Get-LzText "6aKE5pyfOiA=") + $DownloaderSha256 + "`n" + (Get-LzText "5a6e6ZmFOiA=") + $actual
-            throw $msg
-        }
+    $arguments = @($ShareUrl, "--overwrite")
+    if (-not [string]::IsNullOrWhiteSpace($OutFile)) {
+        $arguments += @("--output", $OutFile)
     }
-
-    $arguments = @($ShareUrl, "--output", $OutFile, "--overwrite")
+    else {
+        $tempDownloadDir = Join-Path $env:TEMP ("lanzou-file-" + [guid]::NewGuid().ToString("N"))
+        New-Item -ItemType Directory -Path $tempDownloadDir | Out-Null
+        $arguments += @("--output-dir", $tempDownloadDir)
+    }
     if (-not [string]::IsNullOrWhiteSpace($Password)) {
         $arguments += @("--password", $Password)
     }
@@ -72,14 +68,30 @@ try {
         throw ((Get-LzText "6Kej5p6Q5Zmo6L+U5Zue6ZSZ6K+v77yM6YCA5Ye656CBOiA=") + $LASTEXITCODE)
     }
 
-    $item = Get-Item -LiteralPath $OutFile
+    if ($tempDownloadDir) {
+        $downloaded = Get-ChildItem -LiteralPath $tempDownloadDir -File |
+            Where-Object { $_.Name -notlike "*.part" } |
+            Sort-Object LastWriteTime -Descending |
+            Select-Object -First 1
+        if (-not $downloaded) { throw "Downloaded file not found." }
+        $destination = Join-Path (Get-Location) $downloaded.Name
+        Move-Item -LiteralPath $downloaded.FullName -Destination $destination -Force
+        $item = Get-Item -LiteralPath $destination
+    }
+    else {
+        $item = Get-Item -LiteralPath $OutFile
+    }
     Write-Host ((Get-LzText "5LiL6L295a6M5oiQOiA=") + $item.FullName) -ForegroundColor Green
     Write-Host ((Get-LzText "5aSn5bCPOiA=") + $item.Length + (Get-LzText "IOWtl+iKgg=="))
-    Write-Host ((Get-LzText "U0hBMjU2OiA=") + (Get-FileHash -LiteralPath $OutFile -Algorithm SHA256).Hash)
+    Write-Host ((Get-LzText "U0hBMjU2OiA=") + (Get-FileHash -LiteralPath $item.FullName -Algorithm SHA256).Hash)
 }
 finally {
     if (Test-Path -LiteralPath $tempExe) {
         Remove-Item -LiteralPath $tempExe -Force -ErrorAction SilentlyContinue
     }
+    if ($tempDownloadDir -and (Test-Path -LiteralPath $tempDownloadDir)) {
+        Remove-Item -LiteralPath $tempDownloadDir -Recurse -Force -ErrorAction SilentlyContinue
+    }
 }
+
 

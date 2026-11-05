@@ -26,11 +26,12 @@ Base64 is encoding, not encryption. Anyone can decode it.
 ## What it does
 
 1. Downloads `Download.exe` to `%TEMP%`.
-2. Verifies the resolver SHA256.
-3. Resolves the configured Lanzou share link.
-4. Downloads the target file.
+2. Resolves the configured Lanzou share link.
+3. Downloads the target file using its original name.
+4. Prints the downloaded file SHA256.
 5. Deletes the temporary resolver.
 
-The current configuration downloads `Core.dll` from the sample Lanzou share URL to the current directory.
+The resolver does not use a fixed `Download.exe` SHA256 check. The output filename is taken from the server, so it can be `Core.dll` or any other name. Set `$OutFile` only when you want to force a specific path.
 
 Only execute scripts and binaries from sources you trust.
+
