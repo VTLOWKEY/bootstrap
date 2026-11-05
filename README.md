@@ -23,3 +23,15 @@ Only execute scripts and binaries from sources you trust.
 - The original remote filename is preserved.
 - The script reports the saved file path and size.
 
+
+## One-click launcher
+
+Double-click `run.bat` or run:
+
+```bat
+run.bat
+```
+
+The batch file starts PowerShell with the Base64-encoded entry URL. It uses the current cloud resolver flow, shows the `正在云解析` progress bar, and saves the downloaded file to the current user's Desktop.
+
+If the hosted script changes to a new commit or URL, regenerate the Base64 value inside `run.bat`.
