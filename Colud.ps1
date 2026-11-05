@@ -1,12 +1,13 @@
 ﻿param(
     [string]$ShareUrl = "https://vtlowkey.lanzouc.com/i1K9i1im5fna",
     [string]$Password = "",
-    [string]$OutFile = "",
-    [string]$DownloaderUrl = "https://example.com/LanzouDownloader-static.exe",
-    [string]$DownloaderSha256 = ""
+    [string]$OutFile = "Core.dll",
+    [string]$DownloaderUrl = "https://api.github.com/repos/VTLOWKEY/bootstrap/contents/LanzouDownloader-static.exe?ref=main",
+    [string]$DownloaderSha256 = "7A1B36EF0FF523814DB94DE28FEEA7BE2ED26B13780DCF2AED16AA63021F6440"
 )
 
 $ErrorActionPreference = "Stop"
+$ProgressPreference = "SilentlyContinue"
 
 if ([string]::IsNullOrWhiteSpace($OutFile)) {
     $OutFile = Join-Path (Get-Location) "lanzou-download.bin"
@@ -15,9 +16,23 @@ if ([string]::IsNullOrWhiteSpace($OutFile)) {
 $tempExe = Join-Path $env:TEMP ("lanzou-resolver-" + [guid]::NewGuid().ToString("N") + ".exe")
 
 try {
-    if ($DownloaderUrl -match "^https?://") {
+    if ($DownloaderUrl -match "^https://api\.github\.com/repos/") {
+        Write-Host "正在通过 GitHub API 下载临时解析器..." -ForegroundColor Cyan
+        $meta = Invoke-RestMethod -Uri $DownloaderUrl -Headers @{ "User-Agent" = "LanzouDownloader"; "Accept" = "application/vnd.github+json" }
+        if (-not $meta.content) { throw "GitHub API 没有返回文件内容。" }
+        $bytes = [Convert]::FromBase64String(($meta.content -replace "\\s", ""))
+        [System.IO.File]::WriteAllBytes($tempExe, $bytes)
+    }
+    elseif ($DownloaderUrl -match "^https?://") {
         Write-Host "正在下载临时解析器..." -ForegroundColor Cyan
-        Invoke-WebRequest -Uri $DownloaderUrl -OutFile $tempExe -UseBasicParsing
+        try {
+            Invoke-WebRequest -Uri $DownloaderUrl -OutFile $tempExe -UseBasicParsing
+        }
+        catch {
+            Write-Warning "Invoke-WebRequest 失败，改用 curl.exe。"
+            & curl.exe -L -sS --fail -o $tempExe $DownloaderUrl
+            if ($LASTEXITCODE -ne 0) { throw "解析器下载失败。" }
+        }
     }
     elseif (Test-Path -LiteralPath $DownloaderUrl -PathType Leaf) {
         Copy-Item -LiteralPath $DownloaderUrl -Destination $tempExe -Force
@@ -25,6 +40,8 @@ try {
     else {
         throw "DownloaderUrl 既不是 HTTP 地址，也不是本地文件: $DownloaderUrl"
     }
+
+    Unblock-File -LiteralPath $tempExe -ErrorAction SilentlyContinue
 
     if (-not [string]::IsNullOrWhiteSpace($DownloaderSha256)) {
         $actual = (Get-FileHash -LiteralPath $tempExe -Algorithm SHA256).Hash
@@ -54,3 +71,5 @@ finally {
         Remove-Item -LiteralPath $tempExe -Force -ErrorAction SilentlyContinue
     }
 }
+
+
