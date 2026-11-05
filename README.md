@@ -73,3 +73,19 @@ Run the launcher locally:
 It decrypts the hidden URL, downloads `Colud.ps1`, and starts the existing encrypted-payload flow.
 
 The AES key is embedded in the launcher so that it can run without an extra URL password. This hides the URL from casual inspection, but it is not a substitute for server-side access control. HTTPS still encrypts the network connection itself.
+
+## Encrypted entry URL
+
+`Launcher.ps1` and `Launcher-OneLiner.txt` contain the entry URL encrypted with AES-256-CBC. The plaintext GitHub Pages URL is not present in either file.
+
+Run the launcher:
+
+```powershell
+.\Launcher.ps1
+```
+
+Or paste the content of `Launcher-OneLiner.txt` into PowerShell.
+
+The launcher decrypts the entry URL, downloads `Colud.ps1`, and then starts the encrypted-payload flow.
+
+The AES key is embedded in the launcher so it can run without an extra URL password. This only hides the URL from casual inspection. HTTPS still protects the network transport, and a user who controls the local process can recover the URL at runtime.
