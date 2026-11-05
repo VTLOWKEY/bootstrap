@@ -134,7 +134,6 @@ try {
 
     Write-Host ((Get-LzText "6Kej5p6Q5a6M5oiQOiA=") + $item.FullName) -ForegroundColor Green
     Write-Host ((Get-LzText "5aSn5bCPOiA=") + $item.Length + (Get-LzText "IOWtl+iKgg=="))
-    Write-Host ((Get-LzText "U0hBMjU2OiA=") + (Get-FileHash -LiteralPath $item.FullName -Algorithm SHA256).Hash)
 }
 finally {
     Write-Progress -Activity $activity -Completed
@@ -151,4 +150,5 @@ finally {
         Remove-Item -LiteralPath $stderrFile -Force -ErrorAction SilentlyContinue
     }
 }
+
 

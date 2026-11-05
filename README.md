@@ -21,4 +21,5 @@ Only execute scripts and binaries from sources you trust.
 - Resolver console output is captured and not shown.
 - The downloaded file is saved to the current user's Desktop by default.
 - The original remote filename is preserved.
-- The script prints the downloaded file SHA256 but does not enforce a fixed hash.
+- The script reports the saved file path and size.
+
