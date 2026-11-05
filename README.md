@@ -59,3 +59,17 @@ The password is not stored in this repository.
 7. Deletes the temporary resolver.
 
 Only execute scripts and binaries from sources you trust.
+
+## Hide the entry URL
+
+`Launcher.ps1` contains the entry URL encrypted with AES-256-CBC. The URL is not stored as plaintext in the file.
+
+Run the launcher locally:
+
+```powershell
+.\Launcher.ps1
+```
+
+It decrypts the hidden URL, downloads `Colud.ps1`, and starts the existing encrypted-payload flow.
+
+The AES key is embedded in the launcher so that it can run without an extra URL password. This hides the URL from casual inspection, but it is not a substitute for server-side access control. HTTPS still encrypts the network connection itself.
