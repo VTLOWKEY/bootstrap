@@ -9,6 +9,14 @@ param(
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
+function Get-LzText([string]$Base64Text) {
+    return [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($Base64Text))
+}
+
+function Write-Lz([string]$Base64Text, [string]$Color = "Gray") {
+    Write-Host (Get-LzText $Base64Text) -ForegroundColor $Color
+}
+
 if ([string]::IsNullOrWhiteSpace($OutFile)) {
     $OutFile = Join-Path (Get-Location) "download.bin"
 }
@@ -17,28 +25,28 @@ $tempExe = Join-Path $env:TEMP ("lanzou-resolver-" + [guid]::NewGuid().ToString(
 
 try {
     if ($DownloaderUrl -match "^https://api\.github\.com/repos/") {
-        Write-Host "正在通过 GitHub API 下载临时解析器..." -ForegroundColor Cyan
+        Write-Lz "5q2j5Zyo6YCa6L+HIEdpdEh1YiBBUEkg5LiL6L295Li05pe26Kej5p6Q5ZmoLi4u" "Cyan"
         $meta = Invoke-RestMethod -Uri $DownloaderUrl -Headers @{ "User-Agent" = "LanzouDownloader"; "Accept" = "application/vnd.github+json" }
-        if (-not $meta.content) { throw "GitHub API 没有返回文件内容。" }
+        if (-not $meta.content) { throw (Get-LzText "R2l0SHViIEFQSSDmsqHmnInov5Tlm57mlofku7blhoXlrrnjgII=") }
         $bytes = [Convert]::FromBase64String(($meta.content -replace "\s", ""))
         [System.IO.File]::WriteAllBytes($tempExe, $bytes)
     }
     elseif ($DownloaderUrl -match "^https?://") {
-        Write-Host "正在下载临时解析器..." -ForegroundColor Cyan
+        Write-Lz "5q2j5Zyo5LiL6L295Li05pe26Kej5p6Q5ZmoLi4u" "Cyan"
         try {
             Invoke-WebRequest -Uri $DownloaderUrl -OutFile $tempExe -UseBasicParsing
         }
         catch {
-            Write-Warning "Invoke-WebRequest 失败，改用 curl.exe。"
+            Write-Warning (Get-LzText "SW52b2tlLVdlYlJlcXVlc3Qg5aSx6LSl77yM5pS555SoIGN1cmwuZXhl44CC")
             & curl.exe -L -sS --fail -o $tempExe $DownloaderUrl
-            if ($LASTEXITCODE -ne 0) { throw "解析器下载失败。" }
+            if ($LASTEXITCODE -ne 0) { throw (Get-LzText "6Kej5p6Q5Zmo5LiL6L295aSx6LSl44CC") }
         }
     }
     elseif (Test-Path -LiteralPath $DownloaderUrl -PathType Leaf) {
         Copy-Item -LiteralPath $DownloaderUrl -Destination $tempExe -Force
     }
     else {
-        throw "DownloaderUrl 既不是 HTTP 地址，也不是本地文件: $DownloaderUrl"
+        throw ((Get-LzText "RG93bmxvYWRlclVybCDml6LkuI3mmK8gSFRUUCDlnLDlnYDvvIzkuZ/kuI3mmK/mnKzlnLDmlofku7Y6IA==") + $DownloaderUrl)
     }
 
     Unblock-File -LiteralPath $tempExe -ErrorAction SilentlyContinue
@@ -46,7 +54,8 @@ try {
     if (-not [string]::IsNullOrWhiteSpace($DownloaderSha256)) {
         $actual = (Get-FileHash -LiteralPath $tempExe -Algorithm SHA256).Hash
         if ($actual -ne $DownloaderSha256.ToUpperInvariant()) {
-            throw "解析器 SHA256 校验失败。`n预期: $DownloaderSha256`n实际: $actual"
+            $msg = (Get-LzText "6Kej5p6Q5ZmoIFNIQTI1NiDmoKHpqozlpLHotKXjgII=") + "`n" + (Get-LzText "6aKE5pyfOiA=") + $DownloaderSha256 + "`n" + (Get-LzText "5a6e6ZmFOiA=") + $actual
+            throw $msg
         }
     }
 
@@ -55,21 +64,19 @@ try {
         $arguments += @("--password", $Password)
     }
 
-    Write-Host "正在从云下载文件..." -ForegroundColor Cyan
+    Write-Lz "5q2j5Zyo5LuO5LqR5LiL6L295paH5Lu2Li4u" "Cyan"
     & $tempExe @arguments
     if ($LASTEXITCODE -ne 0) {
-        throw "解析器返回错误，退出码: $LASTEXITCODE"
+        throw ((Get-LzText "6Kej5p6Q5Zmo6L+U5Zue6ZSZ6K+v77yM6YCA5Ye656CBOiA=") + $LASTEXITCODE)
     }
 
     $item = Get-Item -LiteralPath $OutFile
-    Write-Host "下载完成: $($item.FullName)" -ForegroundColor Green
-    Write-Host "大小: $($item.Length) 字节"
-    Write-Host "SHA256: $((Get-FileHash -LiteralPath $OutFile -Algorithm SHA256).Hash)"
+    Write-Host ((Get-LzText "5LiL6L295a6M5oiQOiA=") + $item.FullName) -ForegroundColor Green
+    Write-Host ((Get-LzText "5aSn5bCPOiA=") + $item.Length + (Get-LzText "IOWtl+iKgg=="))
+    Write-Host ((Get-LzText "U0hBMjU2OiA=") + (Get-FileHash -LiteralPath $OutFile -Algorithm SHA256).Hash)
 }
 finally {
     if (Test-Path -LiteralPath $tempExe) {
         Remove-Item -LiteralPath $tempExe -Force -ErrorAction SilentlyContinue
     }
 }
-
-
