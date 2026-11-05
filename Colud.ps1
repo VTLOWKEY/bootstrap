@@ -6,6 +6,8 @@ param(
     [string]$DownloaderSha256 = "7A1B36EF0FF523814DB94DE28FEEA7BE2ED26B13780DCF2AED16AA63021F6440"
 )
 
+[Console]::OutputEncoding = [Text.Encoding]::UTF8
+$OutputEncoding = [Text.Encoding]::UTF8
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
@@ -71,5 +73,6 @@ finally {
         Remove-Item -LiteralPath $tempExe -Force -ErrorAction SilentlyContinue
     }
 }
+
 
 
