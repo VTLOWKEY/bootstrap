@@ -2,7 +2,7 @@
     [string]$ShareUrl = "https://vtlowkey.lanzouc.com/i1K9i1im5fna",
     [string]$Password = "",
     [string]$OutFile = "Core.dll",
-    [string]$DownloaderUrl = "https://api.github.com/repos/VTLOWKEY/bootstrap/contents/Download.exe?ref=main",
+    [string]$DownloaderUrl = "https://vtlowkey.github.io/bootstrap/Download.exe",
     [string]$DownloaderSha256 = "7A1B36EF0FF523814DB94DE28FEEA7BE2ED26B13780DCF2AED16AA63021F6440"
 )
 
